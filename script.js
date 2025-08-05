@@ -1,4 +1,4 @@
-// VR Math App - FINAL VERSION (No VR Button, Randomized Answers)
+// VR Math App - COMPLETE FINAL VERSION
 let selectedGrade = null;
 let currentQuestionIndex = 0;
 let score = 0;
@@ -101,17 +101,17 @@ function speak(text) {
   }
 }
 
-// GAME INITIALIZATION
+// GAME INITIALIZATION (WITH NAME INPUT)
 function startApp() {
   const input = document.getElementById("playerNameInput").value;
   if (input.trim() !== "") playerName = input.trim();
   document.getElementById("nameInputContainer").style.display = "none";
   
-  // Remove VR button completely
+  // Hide VR button completely
   const vrButton = document.getElementById('enter-vr-btn');
   if (vrButton) vrButton.style.display = 'none';
 
-  speak(`Welcome ${playerName}!`);
+  speak(`Welcome ${playerName}! Press start to begin.`);
   document.querySelector('#welcomeText').setAttribute('value', `Welcome to VR Math, ${playerName}!`);
 }
 
@@ -142,7 +142,7 @@ function selectGrade(grade) {
       q: q.q.replace("/", " / "),
       options: shuffledOptions,
       correctAnswer: correctAnswer,
-      correctIndex: shuffledOptions.indexOf(correctAnswer) // Update correct index
+      correctIndex: shuffledOptions.indexOf(correctAnswer) // Updated position
     };
   });
   
@@ -206,7 +206,7 @@ function showQuestion() {
   document.querySelector('#questionText').setAttribute('visible', 'true');
   document.querySelector('#questionText').setAttribute('value', q.q);
   
-  // Display options in their randomized positions
+  // Display options in randomized positions
   for (let i = 0; i < 3; i++) {
     document.querySelector(`#option${i + 1}`).setAttribute('visible', 'true');
     document.querySelector(`#text${i + 1}`).setAttribute('value', q.options[i]);
@@ -307,4 +307,9 @@ document.addEventListener('touchend', function initAudio() {
 }, { once: true });
 
 // Start the app when page loads
-window.addEventListener('load', startApp);
+window.addEventListener('load', function() {
+  // Check if we're running on GitHub Pages
+  if (window.location.host.includes('github.io')) {
+    console.log("Running on GitHub Pages");
+  }
+});
