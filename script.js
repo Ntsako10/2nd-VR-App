@@ -1,6 +1,4 @@
-// VR Math App - COMPLETE iOS OPTIMIZED VERSION
-// With all questions and full Cardboard VR support for iPhone/iPad
-
+// VR Math App - FINAL VERSION (No VR Button, Randomized Answers)
 let selectedGrade = null;
 let currentQuestionIndex = 0;
 let score = 0;
@@ -103,44 +101,21 @@ function speak(text) {
   }
 }
 
-// GAME INITIALIZATION (iOS OPTIMIZED)
+// GAME INITIALIZATION
 function startApp() {
   const input = document.getElementById("playerNameInput").value;
   if (input.trim() !== "") playerName = input.trim();
   document.getElementById("nameInputContainer").style.display = "none";
   
-  // iOS-specific setup
+  // Remove VR button completely
   const vrButton = document.getElementById('enter-vr-btn');
-  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-  
-  if (isIOS) {
-    vrButton.textContent = "Enter Cardboard VR";
-    vrButton.style.backgroundColor = "#FF9800";
-    vrButton.style.display = 'block';
-    
-    // iOS 13+ permission workaround
-    document.addEventListener('touchend', function iosPermissionRequest() {
-      document.removeEventListener('touchend', iosPermissionRequest);
-      if (typeof DeviceOrientationEvent !== 'undefined' && 
-          typeof DeviceOrientationEvent.requestPermission === 'function') {
-        DeviceOrientationEvent.requestPermission()
-          .then(response => {
-            if (response === 'granted') {
-              console.log("iOS motion permissions granted");
-            }
-          })
-          .catch(console.error);
-      }
-    }, { once: true });
-  } else {
-    vrButton.style.display = 'block';
-  }
-  
+  if (vrButton) vrButton.style.display = 'none';
+
   speak(`Welcome ${playerName}!`);
   document.querySelector('#welcomeText').setAttribute('value', `Welcome to VR Math, ${playerName}!`);
 }
 
-// GAME LOGIC (UNCHANGED)
+// GAME LOGIC
 function startGame() {
   if (selectedGrade !== null) return;
   
@@ -159,6 +134,7 @@ function selectGrade(grade) {
   score = 0;
   correctStreak = 0;
   
+  // Shuffle questions AND randomize answer positions
   questions = shuffle(questionsByGrade[grade]).map(q => {
     const correctAnswer = q.options[q.correctIndex];
     const shuffledOptions = shuffle([...q.options]);
@@ -166,7 +142,7 @@ function selectGrade(grade) {
       q: q.q.replace("/", " / "),
       options: shuffledOptions,
       correctAnswer: correctAnswer,
-      correctIndex: shuffledOptions.indexOf(correctAnswer)
+      correctIndex: shuffledOptions.indexOf(correctAnswer) // Update correct index
     };
   });
   
@@ -178,7 +154,7 @@ function selectGrade(grade) {
   showQuestion();
 }
 
-// SCOREBOARD FUNCTIONS (UNCHANGED)
+// SCOREBOARD FUNCTIONS
 function initScoreboard() {
   if (scoreboard) {
     scoreboard.parentNode.removeChild(scoreboard);
@@ -223,13 +199,14 @@ function updateScoreboard() {
     `${playerName}'s Progress\n${score}/${currentQuestionIndex}\n${stars}`);
 }
 
-// GAME FLOW (UNCHANGED)
+// GAME FLOW WITH RANDOMIZED ANSWERS
 function showQuestion() {
   const q = questions[currentQuestionIndex];
   
   document.querySelector('#questionText').setAttribute('visible', 'true');
   document.querySelector('#questionText').setAttribute('value', q.q);
   
+  // Display options in their randomized positions
   for (let i = 0; i < 3; i++) {
     document.querySelector(`#option${i + 1}`).setAttribute('visible', 'true');
     document.querySelector(`#text${i + 1}`).setAttribute('value', q.options[i]);
@@ -242,6 +219,7 @@ function selectAnswer(selectedIndex) {
   const q = questions[currentQuestionIndex];
   const isCorrect = selectedIndex === q.correctIndex;
   
+  // Hide answer boxes immediately
   for (let i = 1; i <= 3; i++) {
     document.querySelector(`#option${i}`).setAttribute('visible', 'false');
   }
@@ -319,116 +297,14 @@ function showFinalScore() {
   speak(`${playerName}, you scored ${score} out of ${questions.length}. ${message}`);
 }
 
-// iOS VR IMPLEMENTATION (COMPLETE)
-document.getElementById('enter-vr-btn').addEventListener('click', async function() {
-  const scene = document.querySelector('a-scene');
-  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-  
-  try {
-    if (isIOS) {
-      // Step 1: Check iOS permissions
-      if (typeof DeviceOrientationEvent !== 'undefined' && 
-          typeof DeviceOrientationEvent.requestPermission === 'function') {
-        const permission = await DeviceOrientationEvent.requestPermission();
-        if (permission !== 'granted') {
-          throw new Error("Please allow motion access in iOS settings");
-        }
-      }
-      
-      // Step 2: Configure scene for iOS
-      scene.setAttribute('vr-mode-ui', 'enabled: true');
-      scene.setAttribute('renderer', 'antialias: true; alpha: true');
-      
-      // Step 3: Enter VR with delay (iOS workaround)
-      setTimeout(() => {
-        if (!scene.is('vr-mode')) {
-          scene.enterVR().catch(e => {
-            showIOSHelpModal();
-          });
-        }
-      }, 300);
-      
-    } else {
-      // Non-iOS VR implementation
-      if ('xr' in navigator) {
-        const supported = await navigator.xr.isSessionSupported('immersive-vr');
-        if (supported) {
-          await scene.enterVR();
-        } else {
-          throw new Error("Try enabling WebXR in browser flags");
-        }
-      } else {
-        throw new Error("WebXR not supported in this browser");
-      }
-    }
-  } catch (error) {
-    console.error("VR Error:", error);
-    showIOSHelpModal();
-  }
-});
-
-// iOS HELP MODAL
-function showIOSHelpModal() {
-  const modal = document.createElement('div');
-  modal.style.position = 'fixed';
-  modal.style.top = '0';
-  modal.style.left = '0';
-  modal.style.width = '100%';
-  modal.style.height = '100%';
-  modal.style.backgroundColor = 'rgba(0,0,0,0.9)';
-  modal.style.zIndex = '10000';
-  modal.style.display = 'flex';
-  modal.style.flexDirection = 'column';
-  modal.style.justifyContent = 'center';
-  modal.style.alignItems = 'center';
-  modal.style.color = 'white';
-  modal.style.padding = '20px';
-  modal.style.textAlign = 'center';
-  
-  modal.innerHTML = `
-    <h2 style="color: #FF9800">iOS VR Setup</h2>
-    <div style="max-width: 80%; margin: 20px 0; line-height: 1.5;">
-      <p>For best experience with Cardboard VR:</p>
-      <ol style="text-align: left; margin: 20px 0;">
-        <li>Use <strong>Safari</strong> (latest version)</li>
-        <li>Tap "Allow" when asked for motion access</li>
-        <li>Lock screen rotation (portrait mode)</li>
-        <li>Insert device into Cardboard viewer</li>
-        <li>Ensure iOS is updated to version 13+</li>
-      </ol>
-      <p><small>Note: Some older iPhones may have limited VR support</small></p>
-    </div>
-    <button onclick="this.parentNode.remove()" 
-      style="padding: 10px 20px; background: #FF9800; border: none; 
-      border-radius: 5px; font-size: 16px; color: white;">
-      I Understand
-    </button>
-  `;
-  
-  document.body.appendChild(modal);
-}
-
-// AUDIO WORKAROUND FOR iOS
+// Initialize audio for iOS
 document.addEventListener('touchend', function initAudio() {
   document.removeEventListener('touchend', initAudio);
-  
-  // Create and play silent audio to unlock audio context
   const silentAudio = new Audio();
   silentAudio.src = 'data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ...';
   silentAudio.volume = 0;
-  silentAudio.play().catch(e => console.log("iOS audio init"));
+  silentAudio.play().catch(e => console.log("Audio initialized"));
 }, { once: true });
 
-// INITIALIZE ON LOAD
-window.addEventListener('load', function() {
-  // Check if GitHub Pages
-  if (window.location.href.includes('github.io')) {
-    console.log("Running on GitHub Pages - HTTPS enabled");
-  }
-  
-  // Check for speech support
-  if (!'speechSynthesis' in window) {
-    document.querySelector('#welcomeText').setAttribute('value', 
-      `Welcome ${playerName}! (Voice disabled)`);
-  }
-});
+// Start the app when page loads
+window.addEventListener('load', startApp);
