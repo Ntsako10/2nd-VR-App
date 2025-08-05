@@ -1,4 +1,3 @@
-// VR Math App - COMPLETE FINAL VERSION
 let selectedGrade = null;
 let currentQuestionIndex = 0;
 let score = 0;
@@ -9,7 +8,6 @@ let correctStreak = 0;
 
 const questionsByGrade = {
   1: [
-    // Addition
     { q: "2 + 2 = ?", options: [3, 4, 5], correctIndex: 1 },
     { q: "1 + 3 = ?", options: [4, 3, 2], correctIndex: 0 },
     { q: "2 + 1 = ?", options: [2, 3, 4], correctIndex: 1 },
@@ -20,8 +18,7 @@ const questionsByGrade = {
     { q: "4 + 2 = ?", options: [6, 5, 7], correctIndex: 0 },
     { q: "1 + 1 = ?", options: [2, 3, 1], correctIndex: 0 },
     { q: "5 + 2 = ?", options: [7, 8, 6], correctIndex: 0 },
-    
-    // Subtraction
+
     { q: "5 - 2 = ?", options: [3, 2, 4], correctIndex: 0 },
     { q: "6 - 1 = ?", options: [5, 4, 6], correctIndex: 0 },
     { q: "7 - 3 = ?", options: [4, 3, 5], correctIndex: 0 },
@@ -34,7 +31,6 @@ const questionsByGrade = {
     { q: "5 - 4 = ?", options: [1, 2, 0], correctIndex: 0 }
   ],
   2: [
-    // Addition
     { q: "5 + 6 = ?", options: [11, 10, 12], correctIndex: 0 },
     { q: "4 + 5 = ?", options: [9, 10, 8], correctIndex: 0 },
     { q: "3 + 7 = ?", options: [10, 9, 8], correctIndex: 1 },
@@ -45,8 +41,7 @@ const questionsByGrade = {
     { q: "3 + 6 = ?", options: [8, 9, 7], correctIndex: 1 },
     { q: "5 + 4 = ?", options: [9, 10, 8], correctIndex: 0 },
     { q: "2 + 6 = ?", options: [8, 9, 7], correctIndex: 0 },
-    
-    // Subtraction
+
     { q: "12 - 4 = ?", options: [8, 7, 9], correctIndex: 0 },
     { q: "10 - 3 = ?", options: [7, 8, 6], correctIndex: 0 },
     { q: "9 - 2 = ?", options: [7, 6, 8], correctIndex: 0 },
@@ -57,8 +52,7 @@ const questionsByGrade = {
     { q: "13 - 7 = ?", options: [6, 5, 4], correctIndex: 0 },
     { q: "15 - 6 = ?", options: [9, 8, 10], correctIndex: 0 },
     { q: "14 - 3 = ?", options: [11, 10, 12], correctIndex: 0 },
-    
-    // Multiplication
+
     { q: "3 x 2 = ?", options: [6, 5, 4], correctIndex: 0 },
     { q: "2 x 4 = ?", options: [8, 6, 7], correctIndex: 0 },
     { q: "1 x 5 = ?", options: [5, 6, 4], correctIndex: 0 },
@@ -69,8 +63,7 @@ const questionsByGrade = {
     { q: "2 x 3 = ?", options: [6, 5, 7], correctIndex: 0 },
     { q: "3 x 1 = ?", options: [3, 2, 4], correctIndex: 0 },
     { q: "2 x 2 = ?", options: [4, 3, 5], correctIndex: 0 },
-    
-    // Division
+
     { q: "6 / 2 = ?", options: [3, 2, 4], correctIndex: 0 },
     { q: "9 / 3 = ?", options: [3, 2, 4], correctIndex: 0 },
     { q: "8 / 2 = ?", options: [4, 3, 5], correctIndex: 0 },
@@ -84,41 +77,32 @@ const questionsByGrade = {
   ]
 };
 
-// UTILITY FUNCTIONS
 function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
+  return array
+    .map(value => ({ value, sort: Math.random() }))
+    .sort((a, b) => a.sort - b.sort)
+    .map(({ value }) => value);
 }
 
-function speak(text) {
-  if ('speechSynthesis' in window) {
-    const msg = new SpeechSynthesisUtterance(text);
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(msg);
-  }
-}
-
-// GAME INITIALIZATION (WITH NAME INPUT)
 function startApp() {
   const input = document.getElementById("playerNameInput").value;
   if (input.trim() !== "") playerName = input.trim();
   document.getElementById("nameInputContainer").style.display = "none";
-  
-  // Hide VR button completely
-  const vrButton = document.getElementById('enter-vr-btn');
-  if (vrButton) vrButton.style.display = 'none';
+  document.getElementById('enter-vr-btn').style.display = 'block';
 
   speak(`Welcome ${playerName}! Press start to begin.`);
   document.querySelector('#welcomeText').setAttribute('value', `Welcome to VR Math, ${playerName}!`);
 }
 
-// GAME LOGIC
+function speak(text) {
+  window.speechSynthesis.cancel();
+  const msg = new SpeechSynthesisUtterance(text);
+  window.speechSynthesis.speak(msg);
+}
+
 function startGame() {
   if (selectedGrade !== null) return;
-  
+
   speak(`Welcome ${playerName}, please choose your grade.`);
   document.querySelector('#startButton').setAttribute('visible', 'false');
   document.querySelector('#welcomeText').setAttribute('visible', 'false');
@@ -128,13 +112,12 @@ function startGame() {
 
 function selectGrade(grade) {
   if (selectedGrade !== null) return;
-  
+
   selectedGrade = grade;
   currentQuestionIndex = 0;
   score = 0;
   correctStreak = 0;
-  
-  // Shuffle questions AND randomize answer positions
+
   questions = shuffle(questionsByGrade[grade]).map(q => {
     const correctAnswer = q.options[q.correctIndex];
     const shuffledOptions = shuffle([...q.options]);
@@ -142,19 +125,18 @@ function selectGrade(grade) {
       q: q.q.replace("/", " / "),
       options: shuffledOptions,
       correctAnswer: correctAnswer,
-      correctIndex: shuffledOptions.indexOf(correctAnswer) // Updated position
+      correctIndex: shuffledOptions.indexOf(correctAnswer)
     };
   });
-  
+
   speak(`You selected Grade ${grade}, ${playerName}. Let's begin.`);
   document.querySelector('#grade1Btn').setAttribute('visible', 'false');
   document.querySelector('#grade2Btn').setAttribute('visible', 'false');
-  
+
   initScoreboard();
   showQuestion();
 }
 
-// SCOREBOARD FUNCTIONS
 function initScoreboard() {
   if (scoreboard) {
     scoreboard.parentNode.removeChild(scoreboard);
@@ -166,8 +148,8 @@ function initScoreboard() {
   
   scoreboard.setAttribute('geometry', {
     primitive: 'plane',
-    width: 2.5,
-    height: 1.2
+    width: 2,
+    height: 1
   });
   scoreboard.setAttribute('material', {
     color: '#4CAF50',
@@ -199,31 +181,28 @@ function updateScoreboard() {
     `${playerName}'s Progress\n${score}/${currentQuestionIndex}\n${stars}`);
 }
 
-// GAME FLOW WITH RANDOMIZED ANSWERS
 function showQuestion() {
   const q = questions[currentQuestionIndex];
-  
+
   document.querySelector('#questionText').setAttribute('visible', 'true');
   document.querySelector('#questionText').setAttribute('value', q.q);
-  
-  // Display options in randomized positions
+
   for (let i = 0; i < 3; i++) {
     document.querySelector(`#option${i + 1}`).setAttribute('visible', 'true');
     document.querySelector(`#text${i + 1}`).setAttribute('value', q.options[i]);
   }
-  
+
   updateScoreboard();
 }
 
 function selectAnswer(selectedIndex) {
   const q = questions[currentQuestionIndex];
   const isCorrect = selectedIndex === q.correctIndex;
-  
-  // Hide answer boxes immediately
+
   for (let i = 1; i <= 3; i++) {
     document.querySelector(`#option${i}`).setAttribute('visible', 'false');
   }
-  
+
   if (isCorrect) {
     score += 1;
     correctStreak += 1;
@@ -236,10 +215,10 @@ function selectAnswer(selectedIndex) {
     speak(`Sorry ${playerName}, that's not right.`);
     correctStreak = 0;
   }
-  
+
   updateScoreboard();
   currentQuestionIndex++;
-  
+
   if (currentQuestionIndex < questions.length) {
     setTimeout(showQuestion, 2000);
   } else {
@@ -263,18 +242,18 @@ function showFinalScore() {
     message = `Keep Practicing ${playerName}!`;
     stars = '⭐';
   }
-  
+
   if (scoreboard) {
     scoreboard.parentNode.removeChild(scoreboard);
   }
-  
+
   const finalScore = document.createElement('a-entity');
   finalScore.setAttribute('position', '0 1 -2');
   
   finalScore.setAttribute('geometry', {
     primitive: 'plane',
     width: 3,
-    height: 1.8
+    height: 1.5
   });
   finalScore.setAttribute('material', {
     color: '#2196F3',
@@ -297,19 +276,19 @@ function showFinalScore() {
   speak(`${playerName}, you scored ${score} out of ${questions.length}. ${message}`);
 }
 
-// Initialize audio for iOS
-document.addEventListener('touchend', function initAudio() {
-  document.removeEventListener('touchend', initAudio);
-  const silentAudio = new Audio();
-  silentAudio.src = 'data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ...';
-  silentAudio.volume = 0;
-  silentAudio.play().catch(e => console.log("Audio initialized"));
-}, { once: true });
-
-// Start the app when page loads
-window.addEventListener('load', function() {
-  // Check if we're running on GitHub Pages
-  if (window.location.host.includes('github.io')) {
-    console.log("Running on GitHub Pages");
+document.getElementById('enter-vr-btn').addEventListener('click', function() {
+  const scene = document.querySelector('a-scene');
+  if (scene.hasLoaded) {
+    scene.enterVR().catch(err => {
+      console.error('Error entering VR:', err);
+      alert('VR mode not available. Please try on a VR-compatible device.');
+    });
+  } else {
+    scene.addEventListener('loaded', function() {
+      scene.enterVR().catch(err => {
+        console.error('Error entering VR:', err);
+        alert('VR mode not available. Please try on a VR-compatible device.');
+      });
+    });
   }
 });
