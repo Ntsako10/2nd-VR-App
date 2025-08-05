@@ -4,6 +4,7 @@ let score = 0;
 let questions = [];
 let playerName = "Friend";
 let scoreboard = null;
+let correctStreak = 0;
 
 const questionsByGrade = {
   1: [
@@ -115,6 +116,7 @@ function selectGrade(grade) {
   selectedGrade = grade;
   currentQuestionIndex = 0;
   score = 0;
+  correctStreak = 0;
 
   questions = shuffle(questionsByGrade[grade]).map(q => {
     const correctAnswer = q.options[q.correctIndex];
@@ -143,12 +145,28 @@ function initScoreboard() {
   scoreboard = document.createElement('a-entity');
   scoreboard.setAttribute('id', 'scoreboard');
   scoreboard.setAttribute('position', '0 3 -5');
-  scoreboard.setAttribute('text', {
-    value: `Score: 0/0\n⭐`,
-    color: 'black',
-    align: 'center',
-    width: 4
+  
+  scoreboard.setAttribute('geometry', {
+    primitive: 'plane',
+    width: 2,
+    height: 1
   });
+  scoreboard.setAttribute('material', {
+    color: '#4CAF50',
+    opacity: 0.8,
+    transparent: true
+  });
+  
+  const scoreText = document.createElement('a-entity');
+  scoreText.setAttribute('position', '0 0 0.1');
+  scoreText.setAttribute('text', {
+    value: `Score: 0/0\n⭐`,
+    color: 'white',
+    align: 'center',
+    width: 3
+  });
+  scoreboard.appendChild(scoreText);
+  
   document.querySelector('a-scene').appendChild(scoreboard);
 }
 
@@ -158,7 +176,8 @@ function updateScoreboard() {
   const stars = '⭐'.repeat(Math.min(5, Math.floor(score / 2))) + 
                '☆'.repeat(Math.max(0, 5 - Math.floor(score / 2)));
   
-  scoreboard.setAttribute('text', 'value', 
+  const scoreText = scoreboard.querySelector('[text]');
+  scoreText.setAttribute('text', 'value', 
     `${playerName}'s Progress\n${score}/${currentQuestionIndex}\n${stars}`);
 }
 
@@ -180,11 +199,21 @@ function selectAnswer(selectedIndex) {
   const q = questions[currentQuestionIndex];
   const isCorrect = selectedIndex === q.correctIndex;
 
+  for (let i = 1; i <= 3; i++) {
+    document.querySelector(`#option${i}`).setAttribute('visible', 'false');
+  }
+
   if (isCorrect) {
-    speak(`Correct, ${playerName}! Well done.`);
     score += 1;
+    correctStreak += 1;
+    
+    if (correctStreak >= 5) {
+      speak(`You rock, ${playerName}! That's ${correctStreak} in a row!`);
+      correctStreak = 0;
+    }
   } else {
     speak(`Sorry ${playerName}, that's not right.`);
+    correctStreak = 0;
   }
 
   updateScoreboard();
@@ -198,6 +227,8 @@ function selectAnswer(selectedIndex) {
 }
 
 function showFinalScore() {
+  document.querySelector('#questionText').setAttribute('visible', 'false');
+  
   const percent = Math.round((score/questions.length)*100);
   let message, stars;
   
@@ -218,20 +249,46 @@ function showFinalScore() {
 
   const finalScore = document.createElement('a-entity');
   finalScore.setAttribute('position', '0 1 -2');
-  finalScore.setAttribute('text', {
+  
+  finalScore.setAttribute('geometry', {
+    primitive: 'plane',
+    width: 3,
+    height: 1.5
+  });
+  finalScore.setAttribute('material', {
+    color: '#2196F3',
+    opacity: 0.9,
+    transparent: true
+  });
+  
+  const finalText = document.createElement('a-entity');
+  finalText.setAttribute('position', '0 0 0.1');
+  finalText.setAttribute('text', {
     value: `FINAL SCORE\n${score}/${questions.length}\n${stars}\n${message}`,
-    color: 'black',
+    color: 'white',
     align: 'center',
     width: 5
   });
+  finalScore.appendChild(finalText);
+  
   document.querySelector('a-scene').appendChild(finalScore);
   
   speak(`${playerName}, you scored ${score} out of ${questions.length}. ${message}`);
 }
 
-document.getElementById('enter-vr-btn').addEventListener('click', () => {
+document.getElementById('enter-vr-btn').addEventListener('click', function() {
   const scene = document.querySelector('a-scene');
-  if (scene && scene.enterVR) {
-    scene.enterVR();
+  if (scene.hasLoaded) {
+    scene.enterVR().catch(err => {
+      console.error('Error entering VR:', err);
+      alert('VR mode not available. Please try on a VR-compatible device.');
+    });
+  } else {
+    scene.addEventListener('loaded', function() {
+      scene.enterVR().catch(err => {
+        console.error('Error entering VR:', err);
+        alert('VR mode not available. Please try on a VR-compatible device.');
+      });
+    });
   }
 });
