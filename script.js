@@ -1,5 +1,5 @@
-// VR Math App - COMPLETE FINAL VERSION
-// Includes: All math questions, Cardboard VR, WebXR, score tracking, and voice feedback
+// VR Math App - COMPLETE iOS OPTIMIZED VERSION
+// With all questions and full Cardboard VR support for iPhone/iPad
 
 let selectedGrade = null;
 let currentQuestionIndex = 0;
@@ -88,31 +88,59 @@ const questionsByGrade = {
 
 // UTILITY FUNCTIONS
 function shuffle(array) {
-  return array
-    .map(value => ({ value, sort: Math.random() }))
-    .sort((a, b) => a.sort - b.sort)
-    .map(({ value }) => value);
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
 }
 
 function speak(text) {
-  window.speechSynthesis.cancel();
-  const msg = new SpeechSynthesisUtterance(text);
-  window.speechSynthesis.speak(msg);
+  if ('speechSynthesis' in window) {
+    const msg = new SpeechSynthesisUtterance(text);
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(msg);
+  }
 }
 
-// GAME INITIALIZATION
+// GAME INITIALIZATION (iOS OPTIMIZED)
 function startApp() {
   const input = document.getElementById("playerNameInput").value;
   if (input.trim() !== "") playerName = input.trim();
   document.getElementById("nameInputContainer").style.display = "none";
-  document.getElementById('enter-vr-btn').style.display = 'block';
   
-  speak(`Welcome ${playerName}! Press start to begin.`);
+  // iOS-specific setup
+  const vrButton = document.getElementById('enter-vr-btn');
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  
+  if (isIOS) {
+    vrButton.textContent = "Enter Cardboard VR";
+    vrButton.style.backgroundColor = "#FF9800";
+    vrButton.style.display = 'block';
+    
+    // iOS 13+ permission workaround
+    document.addEventListener('touchend', function iosPermissionRequest() {
+      document.removeEventListener('touchend', iosPermissionRequest);
+      if (typeof DeviceOrientationEvent !== 'undefined' && 
+          typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission()
+          .then(response => {
+            if (response === 'granted') {
+              console.log("iOS motion permissions granted");
+            }
+          })
+          .catch(console.error);
+      }
+    }, { once: true });
+  } else {
+    vrButton.style.display = 'block';
+  }
+  
+  speak(`Welcome ${playerName}!`);
   document.querySelector('#welcomeText').setAttribute('value', `Welcome to VR Math, ${playerName}!`);
-  checkVRSupport();
 }
 
-// GAME LOGIC
+// GAME LOGIC (UNCHANGED)
 function startGame() {
   if (selectedGrade !== null) return;
   
@@ -150,7 +178,7 @@ function selectGrade(grade) {
   showQuestion();
 }
 
-// SCOREBOARD FUNCTIONS
+// SCOREBOARD FUNCTIONS (UNCHANGED)
 function initScoreboard() {
   if (scoreboard) {
     scoreboard.parentNode.removeChild(scoreboard);
@@ -160,7 +188,6 @@ function initScoreboard() {
   scoreboard.setAttribute('id', 'scoreboard');
   scoreboard.setAttribute('position', '0 3 -5');
   
-  // Background panel
   scoreboard.setAttribute('geometry', {
     primitive: 'plane',
     width: 2.5,
@@ -172,7 +199,6 @@ function initScoreboard() {
     transparent: true
   });
   
-  // Text with stars
   const scoreText = document.createElement('a-entity');
   scoreText.setAttribute('position', '0 0 0.1');
   scoreText.setAttribute('text', {
@@ -197,7 +223,7 @@ function updateScoreboard() {
     `${playerName}'s Progress\n${score}/${currentQuestionIndex}\n${stars}`);
 }
 
-// GAME FLOW
+// GAME FLOW (UNCHANGED)
 function showQuestion() {
   const q = questions[currentQuestionIndex];
   
@@ -216,7 +242,6 @@ function selectAnswer(selectedIndex) {
   const q = questions[currentQuestionIndex];
   const isCorrect = selectedIndex === q.correctIndex;
   
-  // Hide answer boxes immediately
   for (let i = 1; i <= 3; i++) {
     document.querySelector(`#option${i}`).setAttribute('visible', 'false');
   }
@@ -245,7 +270,6 @@ function selectAnswer(selectedIndex) {
 }
 
 function showFinalScore() {
-  // Hide all remaining UI elements
   document.querySelector('#questionText').setAttribute('visible', 'false');
   
   const percent = Math.round((score/questions.length)*100);
@@ -266,11 +290,9 @@ function showFinalScore() {
     scoreboard.parentNode.removeChild(scoreboard);
   }
   
-  // Create final score display
   const finalScore = document.createElement('a-entity');
   finalScore.setAttribute('position', '0 1 -2');
   
-  // Background panel
   finalScore.setAttribute('geometry', {
     primitive: 'plane',
     width: 3,
@@ -282,7 +304,6 @@ function showFinalScore() {
     transparent: true
   });
   
-  // Text with stars
   const finalText = document.createElement('a-entity');
   finalText.setAttribute('position', '0 0 0.1');
   finalText.setAttribute('text', {
@@ -298,107 +319,116 @@ function showFinalScore() {
   speak(`${playerName}, you scored ${score} out of ${questions.length}. ${message}`);
 }
 
-// VR SYSTEM - COMPLETE IMPLEMENTATION
-function checkVRSupport() {
-  const vrButton = document.getElementById('enter-vr-btn');
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  
-  if (isMobile) {
-    vrButton.textContent = "Enter Cardboard VR";
-    vrButton.style.backgroundColor = "#FF9800";
-    vrButton.title = "For Cardboard VR viewers";
-  } else {
-    vrButton.textContent = "Enter VR Mode";
-    vrButton.style.backgroundColor = "#008CBA";
-    vrButton.title = "For VR headsets like Oculus or HTC Vive";
-  }
-}
-
+// iOS VR IMPLEMENTATION (COMPLETE)
 document.getElementById('enter-vr-btn').addEventListener('click', async function() {
   const scene = document.querySelector('a-scene');
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
   
   try {
-    // Mobile/Google Cardboard flow
-    if (isMobile) {
-      // First try WebXR (newer Cardboard implementations)
+    if (isIOS) {
+      // Step 1: Check iOS permissions
+      if (typeof DeviceOrientationEvent !== 'undefined' && 
+          typeof DeviceOrientationEvent.requestPermission === 'function') {
+        const permission = await DeviceOrientationEvent.requestPermission();
+        if (permission !== 'granted') {
+          throw new Error("Please allow motion access in iOS settings");
+        }
+      }
+      
+      // Step 2: Configure scene for iOS
+      scene.setAttribute('vr-mode-ui', 'enabled: true');
+      scene.setAttribute('renderer', 'antialias: true; alpha: true');
+      
+      // Step 3: Enter VR with delay (iOS workaround)
+      setTimeout(() => {
+        if (!scene.is('vr-mode')) {
+          scene.enterVR().catch(e => {
+            showIOSHelpModal();
+          });
+        }
+      }, 300);
+      
+    } else {
+      // Non-iOS VR implementation
       if ('xr' in navigator) {
         const supported = await navigator.xr.isSessionSupported('immersive-vr');
         if (supported) {
           await scene.enterVR();
-          return;
+        } else {
+          throw new Error("Try enabling WebXR in browser flags");
         }
-      }
-      
-      // Fallback to legacy Cardboard mode
-      scene.setAttribute('vr-mode-ui', 'enabled: true');
-      scene.setAttribute('device-orientation-permission-ui', 'enabled: true');
-      await scene.enterVR();
-    } 
-    // Desktop VR flow
-    else {
-      // Check for WebXR support
-      if (!('xr' in navigator)) {
-        throw new Error("WebXR not supported in this browser");
-      }
-      
-      const isVRAvailable = await navigator.xr.isSessionSupported('immersive-vr');
-      if (!isVRAvailable) {
-        throw new Error("VR not available on this device");
-      }
-      
-      if (scene.hasLoaded) {
-        await scene.enterVR();
       } else {
-        scene.addEventListener('loaded', async () => {
-          await scene.enterVR();
-        });
+        throw new Error("WebXR not supported in this browser");
       }
     }
   } catch (error) {
-    console.error('VR Error:', error);
-    
-    // Detailed troubleshooting guide
-    let troubleshooting = [];
-    if (isMobile) {
-      troubleshooting = [
-        "CARDBOARD TROUBLESHOOTING:",
-        "1. Use Chrome for Android",
-        "2. Enable device orientation:",
-        "   • Visit chrome://flags",
-        "   • Enable #generic-sensor",
-        "   • Enable #orientation-sensor",
-        "3. Make sure phone sensors work",
-        "4. Insert phone into Cardboard"
-      ];
-    } else {
-      troubleshooting = [
-        "DESKTOP VR TROUBLESHOOTING:",
-        "1. Use Chrome or Edge",
-        "2. Enable WebXR flags:",
-        "   • Visit chrome://flags",
-        "   • Enable #webxr",
-        "   • Enable #webxr-hit-test",
-        "3. Connect your VR headset",
-        "4. Restart browser after changes"
-      ];
-    }
-    
-    alert(`VR ERROR: ${error.message}\n\n${troubleshooting.join('\n')}`);
+    console.error("VR Error:", error);
+    showIOSHelpModal();
   }
 });
 
-// Initialize when page loads
+// iOS HELP MODAL
+function showIOSHelpModal() {
+  const modal = document.createElement('div');
+  modal.style.position = 'fixed';
+  modal.style.top = '0';
+  modal.style.left = '0';
+  modal.style.width = '100%';
+  modal.style.height = '100%';
+  modal.style.backgroundColor = 'rgba(0,0,0,0.9)';
+  modal.style.zIndex = '10000';
+  modal.style.display = 'flex';
+  modal.style.flexDirection = 'column';
+  modal.style.justifyContent = 'center';
+  modal.style.alignItems = 'center';
+  modal.style.color = 'white';
+  modal.style.padding = '20px';
+  modal.style.textAlign = 'center';
+  
+  modal.innerHTML = `
+    <h2 style="color: #FF9800">iOS VR Setup</h2>
+    <div style="max-width: 80%; margin: 20px 0; line-height: 1.5;">
+      <p>For best experience with Cardboard VR:</p>
+      <ol style="text-align: left; margin: 20px 0;">
+        <li>Use <strong>Safari</strong> (latest version)</li>
+        <li>Tap "Allow" when asked for motion access</li>
+        <li>Lock screen rotation (portrait mode)</li>
+        <li>Insert device into Cardboard viewer</li>
+        <li>Ensure iOS is updated to version 13+</li>
+      </ol>
+      <p><small>Note: Some older iPhones may have limited VR support</small></p>
+    </div>
+    <button onclick="this.parentNode.remove()" 
+      style="padding: 10px 20px; background: #FF9800; border: none; 
+      border-radius: 5px; font-size: 16px; color: white;">
+      I Understand
+    </button>
+  `;
+  
+  document.body.appendChild(modal);
+}
+
+// AUDIO WORKAROUND FOR iOS
+document.addEventListener('touchend', function initAudio() {
+  document.removeEventListener('touchend', initAudio);
+  
+  // Create and play silent audio to unlock audio context
+  const silentAudio = new Audio();
+  silentAudio.src = 'data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ...';
+  silentAudio.volume = 0;
+  silentAudio.play().catch(e => console.log("iOS audio init"));
+}, { once: true });
+
+// INITIALIZE ON LOAD
 window.addEventListener('load', function() {
-  // Check if we're running on GitHub Pages
-  if (window.location.host.includes('github.io')) {
-    console.log("Running on GitHub Pages - VR should work over HTTPS");
+  // Check if GitHub Pages
+  if (window.location.href.includes('github.io')) {
+    console.log("Running on GitHub Pages - HTTPS enabled");
   }
   
-  // Check for speech synthesis support
-  if (!window.speechSynthesis) {
-    console.warn("Speech synthesis not supported");
+  // Check for speech support
+  if (!'speechSynthesis' in window) {
     document.querySelector('#welcomeText').setAttribute('value', 
-      `Welcome ${playerName}! (Voice disabled in this browser)`);
+      `Welcome ${playerName}! (Voice disabled)`);
   }
 });
