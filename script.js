@@ -1,31 +1,108 @@
 let selectedGrade = null;
 let currentQuestionIndex = 0;
 let score = 0;
-let questions = []; // Set after grade selection
+let questions = [];
+let playerName = "Friend";
+let scoreboard = null;
 
 const questionsByGrade = {
   1: [
-    { q: "1 + 2 = ?", options: [2, 3, 4], correctIndex: 1 },
-    { q: "3 - 2 = ?", options: [2, 1, 0], correctIndex: 1 },
-    { q: "2 + 1 = ?", options: [2, 3, 4], correctIndex: 1 }
+    { q: "2 + 2 = ?", options: [3, 4, 5], correctIndex: 1 },
+    { q: "1 + 3 = ?", options: [4, 3, 2], correctIndex: 0 },
+    { q: "2 + 1 = ?", options: [2, 3, 4], correctIndex: 1 },
+    { q: "3 + 2 = ?", options: [5, 4, 6], correctIndex: 0 },
+    { q: "4 + 1 = ?", options: [6, 4, 5], correctIndex: 2 },
+    { q: "2 + 5 = ?", options: [6, 7, 8], correctIndex: 1 },
+    { q: "3 + 3 = ?", options: [6, 5, 4], correctIndex: 0 },
+    { q: "4 + 2 = ?", options: [6, 5, 7], correctIndex: 0 },
+    { q: "1 + 1 = ?", options: [2, 3, 1], correctIndex: 0 },
+    { q: "5 + 2 = ?", options: [7, 8, 6], correctIndex: 0 },
+
+    { q: "5 - 2 = ?", options: [3, 2, 4], correctIndex: 0 },
+    { q: "6 - 1 = ?", options: [5, 4, 6], correctIndex: 0 },
+    { q: "7 - 3 = ?", options: [4, 3, 5], correctIndex: 0 },
+    { q: "9 - 5 = ?", options: [4, 3, 5], correctIndex: 0 },
+    { q: "10 - 7 = ?", options: [3, 2, 4], correctIndex: 0 },
+    { q: "4 - 2 = ?", options: [2, 3, 1], correctIndex: 0 },
+    { q: "3 - 1 = ?", options: [2, 1, 0], correctIndex: 0 },
+    { q: "8 - 6 = ?", options: [2, 3, 1], correctIndex: 0 },
+    { q: "6 - 3 = ?", options: [3, 2, 4], correctIndex: 0 },
+    { q: "5 - 4 = ?", options: [1, 2, 0], correctIndex: 0 }
   ],
   2: [
-    { q: "5 + 6 = ?", options: [10, 11, 12], correctIndex: 1 },
-    { q: "8 - 4 = ?", options: [3, 4, 5], correctIndex: 1 },
-    { q: "3 x 2 = ?", options: [5, 6, 7], correctIndex: 1 },
-    { q: "9 / 3 = ?", options: [2, 3, 4], correctIndex: 1 } // Changed ÷ to /
+    { q: "5 + 6 = ?", options: [11, 10, 12], correctIndex: 0 },
+    { q: "4 + 5 = ?", options: [9, 10, 8], correctIndex: 0 },
+    { q: "3 + 7 = ?", options: [10, 9, 8], correctIndex: 1 },
+    { q: "6 + 6 = ?", options: [11, 12, 10], correctIndex: 1 },
+    { q: "7 + 4 = ?", options: [11, 12, 10], correctIndex: 0 },
+    { q: "8 + 3 = ?", options: [11, 10, 12], correctIndex: 0 },
+    { q: "6 + 5 = ?", options: [11, 10, 12], correctIndex: 0 },
+    { q: "3 + 6 = ?", options: [8, 9, 7], correctIndex: 1 },
+    { q: "5 + 4 = ?", options: [9, 10, 8], correctIndex: 0 },
+    { q: "2 + 6 = ?", options: [8, 9, 7], correctIndex: 0 },
+
+    { q: "12 - 4 = ?", options: [8, 7, 9], correctIndex: 0 },
+    { q: "10 - 3 = ?", options: [7, 8, 6], correctIndex: 0 },
+    { q: "9 - 2 = ?", options: [7, 6, 8], correctIndex: 0 },
+    { q: "11 - 5 = ?", options: [6, 5, 7], correctIndex: 0 },
+    { q: "8 - 4 = ?", options: [4, 5, 3], correctIndex: 0 },
+    { q: "7 - 2 = ?", options: [5, 4, 6], correctIndex: 0 },
+    { q: "6 - 1 = ?", options: [5, 4, 6], correctIndex: 0 },
+    { q: "13 - 7 = ?", options: [6, 5, 4], correctIndex: 0 },
+    { q: "15 - 6 = ?", options: [9, 8, 10], correctIndex: 0 },
+    { q: "14 - 3 = ?", options: [11, 10, 12], correctIndex: 0 },
+
+    { q: "3 x 2 = ?", options: [6, 5, 4], correctIndex: 0 },
+    { q: "2 x 4 = ?", options: [8, 6, 7], correctIndex: 0 },
+    { q: "1 x 5 = ?", options: [5, 6, 4], correctIndex: 0 },
+    { q: "4 x 2 = ?", options: [8, 7, 6], correctIndex: 0 },
+    { q: "3 x 3 = ?", options: [9, 8, 10], correctIndex: 0 },
+    { q: "5 x 2 = ?", options: [10, 9, 11], correctIndex: 0 },
+    { q: "6 x 1 = ?", options: [6, 5, 7], correctIndex: 0 },
+    { q: "2 x 3 = ?", options: [6, 5, 7], correctIndex: 0 },
+    { q: "3 x 1 = ?", options: [3, 2, 4], correctIndex: 0 },
+    { q: "2 x 2 = ?", options: [4, 3, 5], correctIndex: 0 },
+
+    { q: "6 / 2 = ?", options: [3, 2, 4], correctIndex: 0 },
+    { q: "9 / 3 = ?", options: [3, 2, 4], correctIndex: 0 },
+    { q: "8 / 2 = ?", options: [4, 3, 5], correctIndex: 0 },
+    { q: "10 / 2 = ?", options: [5, 4, 6], correctIndex: 0 },
+    { q: "12 / 3 = ?", options: [4, 3, 5], correctIndex: 0 },
+    { q: "15 / 5 = ?", options: [3, 2, 4], correctIndex: 0 },
+    { q: "18 / 3 = ?", options: [6, 5, 7], correctIndex: 0 },
+    { q: "14 / 2 = ?", options: [7, 6, 8], correctIndex: 0 },
+    { q: "20 / 5 = ?", options: [4, 3, 5], correctIndex: 0 },
+    { q: "16 / 4 = ?", options: [4, 3, 5], correctIndex: 0 }
   ]
 };
 
+function shuffle(array) {
+  return array
+    .map(value => ({ value, sort: Math.random() }))
+    .sort((a, b) => a.sort - b.sort)
+    .map(({ value }) => value);
+}
+
+function startApp() {
+  const input = document.getElementById("playerNameInput").value;
+  if (input.trim() !== "") playerName = input.trim();
+  document.getElementById("nameInputContainer").style.display = "none";
+  document.getElementById('enter-vr-btn').style.display = 'block';
+
+  speak(`Welcome ${playerName}! Press start to begin.`);
+  document.querySelector('#welcomeText').setAttribute('value', `Welcome to VR Math, ${playerName}!`);
+}
+
 function speak(text) {
+  window.speechSynthesis.cancel();
   const msg = new SpeechSynthesisUtterance(text);
   window.speechSynthesis.speak(msg);
 }
 
 function startGame() {
-  if (selectedGrade !== null) return; // ✅ Prevent repeat welcome if already selected
+  if (selectedGrade !== null) return;
 
-  speak("Welcome! Please choose your grade.");
+  speak(`Welcome ${playerName}, please choose your grade.`);
   document.querySelector('#startButton').setAttribute('visible', 'false');
   document.querySelector('#welcomeText').setAttribute('visible', 'false');
   document.querySelector('#grade1Btn').setAttribute('visible', 'true');
@@ -33,16 +110,56 @@ function startGame() {
 }
 
 function selectGrade(grade) {
+  if (selectedGrade !== null) return;
+
   selectedGrade = grade;
   currentQuestionIndex = 0;
   score = 0;
-  questions = questionsByGrade[grade]; // ✅ Set correct questions
 
-  speak(`You selected Grade ${grade}. Let's begin.`);
+  questions = shuffle(questionsByGrade[grade]).map(q => {
+    const correctAnswer = q.options[q.correctIndex];
+    const shuffledOptions = shuffle([...q.options]);
+    return {
+      q: q.q.replace("/", " / "),
+      options: shuffledOptions,
+      correctAnswer: correctAnswer,
+      correctIndex: shuffledOptions.indexOf(correctAnswer)
+    };
+  });
+
+  speak(`You selected Grade ${grade}, ${playerName}. Let's begin.`);
   document.querySelector('#grade1Btn').setAttribute('visible', 'false');
   document.querySelector('#grade2Btn').setAttribute('visible', 'false');
 
+  initScoreboard();
   showQuestion();
+}
+
+function initScoreboard() {
+  if (scoreboard) {
+    scoreboard.parentNode.removeChild(scoreboard);
+  }
+  
+  scoreboard = document.createElement('a-entity');
+  scoreboard.setAttribute('id', 'scoreboard');
+  scoreboard.setAttribute('position', '0 3 -5');
+  scoreboard.setAttribute('text', {
+    value: `Score: 0/0\n⭐`,
+    color: 'black',
+    align: 'center',
+    width: 4
+  });
+  document.querySelector('a-scene').appendChild(scoreboard);
+}
+
+function updateScoreboard() {
+  if (!scoreboard) return;
+  
+  const stars = '⭐'.repeat(Math.min(5, Math.floor(score / 2))) + 
+               '☆'.repeat(Math.max(0, 5 - Math.floor(score / 2)));
+  
+  scoreboard.setAttribute('text', 'value', 
+    `${playerName}'s Progress\n${score}/${currentQuestionIndex}\n${stars}`);
 }
 
 function showQuestion() {
@@ -51,15 +168,12 @@ function showQuestion() {
   document.querySelector('#questionText').setAttribute('visible', 'true');
   document.querySelector('#questionText').setAttribute('value', q.q);
 
-  // Show options
-  document.querySelector('#option1').setAttribute('visible', 'true');
-  document.querySelector('#text1').setAttribute('value', q.options[0]);
+  for (let i = 0; i < 3; i++) {
+    document.querySelector(`#option${i + 1}`).setAttribute('visible', 'true');
+    document.querySelector(`#text${i + 1}`).setAttribute('value', q.options[i]);
+  }
 
-  document.querySelector('#option2').setAttribute('visible', 'true');
-  document.querySelector('#text2').setAttribute('value', q.options[1]);
-
-  document.querySelector('#option3').setAttribute('visible', 'true');
-  document.querySelector('#text3').setAttribute('value', q.options[2]);
+  updateScoreboard();
 }
 
 function selectAnswer(selectedIndex) {
@@ -67,39 +181,57 @@ function selectAnswer(selectedIndex) {
   const isCorrect = selectedIndex === q.correctIndex;
 
   if (isCorrect) {
-    speak("Correct! Well done!");
+    speak(`Correct, ${playerName}! Well done.`);
     score += 1;
   } else {
-    speak("Oops! That’s not right.");
+    speak(`Sorry ${playerName}, that's not right.`);
   }
 
+  updateScoreboard();
   currentQuestionIndex++;
 
   if (currentQuestionIndex < questions.length) {
     setTimeout(showQuestion, 2000);
   } else {
-    setTimeout(showFeedback, 2000);
+    setTimeout(showFinalScore, 2000);
   }
 }
 
-function showFeedback() {
-  const percent = Math.round((score / questions.length) * 100);
-  let message = percent >= 70 ? "Awesome job! You unlocked a new scene!" : "Keep practicing!";
-  const resultText = `You scored ${percent}%.\n${message}`;
+function showFinalScore() {
+  const percent = Math.round((score/questions.length)*100);
+  let message, stars;
+  
+  if (percent >= 90) {
+    message = `Math Champion ${playerName}!`;
+    stars = '⭐⭐⭐⭐⭐';
+  } else if (percent >= 70) {
+    message = `Great Job ${playerName}!`;
+    stars = '⭐⭐⭐';
+  } else {
+    message = `Keep Practicing ${playerName}!`;
+    stars = '⭐';
+  }
 
-  // Hide question and options
-  document.querySelector('#questionText').setAttribute('visible', 'false');
-  document.querySelector('#option1').setAttribute('visible', 'false');
-  document.querySelector('#option2').setAttribute('visible', 'false');
-  document.querySelector('#option3').setAttribute('visible', 'false');
+  if (scoreboard) {
+    scoreboard.parentNode.removeChild(scoreboard);
+  }
 
-  // Show feedback
-  const feedback = document.createElement('a-text');
-  feedback.setAttribute('value', resultText);
-  feedback.setAttribute('position', '-1 1.5 -3');
-  feedback.setAttribute('color', 'black');
-  feedback.setAttribute('width', 6);
-  document.querySelector('a-scene').appendChild(feedback);
-
-  speak(message);
+  const finalScore = document.createElement('a-entity');
+  finalScore.setAttribute('position', '0 1 -2');
+  finalScore.setAttribute('text', {
+    value: `FINAL SCORE\n${score}/${questions.length}\n${stars}\n${message}`,
+    color: 'black',
+    align: 'center',
+    width: 5
+  });
+  document.querySelector('a-scene').appendChild(finalScore);
+  
+  speak(`${playerName}, you scored ${score} out of ${questions.length}. ${message}`);
 }
+
+document.getElementById('enter-vr-btn').addEventListener('click', () => {
+  const scene = document.querySelector('a-scene');
+  if (scene && scene.enterVR) {
+    scene.enterVR();
+  }
+});

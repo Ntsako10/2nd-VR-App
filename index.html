@@ -4,13 +4,21 @@
     <meta charset="utf-8">
     <title>VR Math App</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aframe-environment-component@1.3.1/dist/aframe-environment-component.min.js"></script>
     <script src="script.js"></script>
     <link rel="stylesheet" href="style.css">
   </head>
   <body>
-    <a-scene background="color: #ECECEC">
-      <!-- Camera + Cursor -->
-      <a-entity camera look-controls position="0 1.0 0">
+    <div id="nameInputContainer" style="position: absolute; width: 100%; height: 100%; background: #cbe8f3; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10;">
+      <h2>Welcome to VR Math!</h2>
+      <input type="text" id="playerNameInput" placeholder="Enter your name..." style="padding: 10px; font-size: 18px;">
+      <button onclick="startApp()" style="padding: 10px 20px; font-size: 18px; margin-top: 10px;">Start</button>
+    </div>
+
+    <a-scene>
+      <a-entity environment="preset: forest; dressingAmount: 20; groundColor: #88cc88; skyType: atmosphere; lighting: distant; playArea: 1.5;"></a-entity>
+
+      <a-entity camera look-controls position="0 1.6 0" rotation="0 15 0">
         <a-entity 
           cursor="fuse: true; fuseTimeout: 1500" 
           position="0 0 -1" 
@@ -19,18 +27,14 @@
         </a-entity>
       </a-entity>
 
-      <!-- Welcome Text -->
-      <a-text value="Welcome to VR Math!" position="-1 1.5 -3" color="black" width="4" id="welcomeText"></a-text>
+      <a-text id="welcomeText" value="Welcome to VR Math!" position="-1 2 -3" color="black" width="6"></a-text>
 
-      <!-- Start Button -->
       <a-entity id="startButton" geometry="primitive: box; height: 0.5; width: 1.5; depth: 0.3"
                 position="0 1 -3" material="color: #4CAF50"
                 onclick="startGame()">
-        <a-text value="Start" color="white" align="center"
-                position="0 0 0.3" width="4"></a-text>
+        <a-text value="Start" color="white" align="center" position="0 0 0.3" width="4"></a-text>
       </a-entity>
 
-      <!-- Grade Buttons (Initially Hidden) -->
       <a-entity id="grade1Btn" visible="false" geometry="primitive: box; height: 0.5; width: 1.5; depth: 0.3"
                 position="-1 1 -3" material="color: #2196F3"
                 onclick="selectGrade(1)">
@@ -43,10 +47,8 @@
         <a-text value="Grade 2" color="white" align="center" position="0 0 0.3" width="4"></a-text>
       </a-entity>
 
-      <!-- Math Question -->
       <a-text id="questionText" value="" position="-1 1.5 -3" color="black" width="6" visible="false"></a-text>
 
-      <!-- Answer Buttons -->
       <a-entity id="option1" visible="false" geometry="primitive: box; height: 0.5; width: 1; depth: 0.3"
                 position="-1.5 0.5 -3" material="color: #FF9800"
                 onclick="selectAnswer(0)">
@@ -65,5 +67,9 @@
         <a-text id="text3" value="" color="white" align="center" position="0 0 0.3" width="4"></a-text>
       </a-entity>
     </a-scene>
+
+    <button id="enter-vr-btn" style="position: absolute; bottom: 20px; right: 20px; padding: 10px 15px; font-size: 18px; border: none; background-color: #008CBA; color: white; border-radius: 5px; z-index: 9999; display: none;">
+      Enter VR Mode
+    </button>
   </body>
 </html>
